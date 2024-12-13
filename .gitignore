@@ -1,0 +1,12 @@
+
+#Gitignore for latex
+*.aux
+*.bbl
+*.blg
+
+#folder
+prerequisities/
+
+.DS_Store
+
+data_saved/
