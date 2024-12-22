@@ -7,7 +7,7 @@ import sys
 import math
 
 class Policy(torch.nn.Module):
-    def __init__(self, state_space, action_space):
+    def __init__(self, state_space, action_space):        
         super().__init__()
         self.state_space = state_space
         self.action_space = action_space
@@ -15,7 +15,7 @@ class Policy(torch.nn.Module):
         self.fc1 = torch.nn.Linear(state_space, self.hidden)
         self.fc2_mean = torch.nn.Linear(self.hidden, action_space)
 
-        self.sigmasquared = 5
+        self.sigmasquared = 5 # Initial value of sigma squared. This is can be changed to a learnable parameter if needed
 
         self.init_weights()
 
@@ -32,13 +32,20 @@ class Policy(torch.nn.Module):
 
         # --- Instantiate and return a normal distribution with mean as network output
         # T1 TODO
-        normal_dist = ...
-        
-        return normal_dist
+        # We use the square root of the variance because the normal distribution takes the standard deviation as input
+        return Normal(action_mean, torch.sqrt(torch.tensor(self.sigmasquared))) 
 
 
 class Agent(object):
-    def __init__(self, policy):
+    def __init__(self, policy, algorithm = 'basic'):
+        """
+        Initialize REINFORCE agent with different variants
+        Args:
+            policy: Policy network
+            algorithm: 'basic', 'constant_baseline', or 'normalized'
+            baseline_value: Constant baseline value (used only if algorithm='constant_baseline')
+        """
+                
         self.train_device = "cpu"
         self.policy = policy.to(self.train_device)
         self.optimizer = torch.optim.Adam(policy.parameters(), lr=5e-3)
@@ -46,7 +53,30 @@ class Agent(object):
         self.states = []
         self.action_probs = []
         self.rewards = []
+        self.baseline_value = 20
+        self.algorithm = algorithm
 
+    def basic_reinforce(self, action_probs, discounted_rewards):
+        """
+        (a) Basic REINFORCE without baseline
+        """
+        return -action_probs * discounted_rewards
+
+    def constant_baseline_reinforce(self, action_probs, discounted_rewards):
+        """
+        (b) REINFORCE with constant baseline
+        """
+        advantage = discounted_rewards - self.baseline_value
+        return -action_probs * advantage
+
+    def normalized_reinforce(self, action_probs, discounted_rewards):
+        """
+        (c) REINFORCE with normalized rewards
+        """
+        # Normalize rewards to zero mean and unit variance
+        normalized_rewards = (discounted_rewards - discounted_rewards.mean()) / (discounted_rewards.std() + 1e-8) # + 1e-8 to avoid division by zero
+        return -action_probs * normalized_rewards
+    
     def episode_finished(self, episode_number):
         action_probs = torch.stack(self.action_probs, dim=0) \
                 .to(self.train_device).squeeze(-1)
@@ -56,24 +86,30 @@ class Agent(object):
 
         discounted_rewards = discount_rewards(rewards, self.gamma)
 
-        # T1 b) TODO
-        discounted_rewards = ...
+        # Compute the discounted rewards (T1) TODO
+        if self.algorithm == 'basic':
+            estimated_loss_batch = self.basic_reinforce(action_probs, discounted_rewards)
+        elif self.algorithm == 'constant_baseline':
+            # T1 b) TODO
+            estimated_loss_batch = self.constant_baseline_reinforce(action_probs, discounted_rewards)
+        elif self.algorithm == 'normalized':
+            # T1 c) TODO
+            estimated_loss_batch = self.normalized_reinforce(action_probs, discounted_rewards)
+        else:
+            raise ValueError(f"Unknown algorithm: {self.algorithm}")
 
-        # T1 c) TODO
-        discounted_rewards = ...
-
-        # Compute the optimization term, loss function to optimize (T1) TODO
-        estimated_loss_batch =...
 
         # estimated_loss = torch.sum(estimated_loss_batch)
         # Using the mean is more stable as it results in more consistent and "predictable" update sizes (different episodes have different number of timesteps)
         estimated_loss = torch.mean(estimated_loss_batch)
 
         # Compute the gradients of loss w.r.t. network parameters (T1) TODO
-        ...
+        estimated_loss.backward()
 
         # Update network parameters using self.optimizer and zero gradients (T1) TODO
-        ...
+        self.optimizer.step()
+        # Zero the gradients
+        self.optimizer.zero_grad()
 
         return        
 
@@ -87,9 +123,10 @@ class Agent(object):
             return normal_dist.mean, None
         else:
             # Sample from the distribution (T1) TODO
-            action = ...
+            action = normal_dist.sample()
+ 
             # Calculate the log probability of the action (T1) TODO
-            action_log_prob = ...
+            action_log_prob = normal_dist.log_prob(action)
 
         return action, action_log_prob
 
