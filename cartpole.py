@@ -177,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--algorithm",
         type=str,
-        default="normalized",
+        default="constant_baseline",
         help="Algorithm to use for training (basic, constant_baseline, normalized)",
     )
     parser.add_argument(

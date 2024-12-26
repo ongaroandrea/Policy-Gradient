@@ -65,8 +65,7 @@
 %===============================================================================
 
 \begin{abstract}
-This article is the third in a series of three reports for the Reinforcement Learning laboratory course at Politecnico di Torino. This report is about policy gradient reinforcement learning algorithms within the OpenAI Gym environment, focusing on the CartPole problem. This process started implementing the naïve REINFORCE algorithm and then exploring more advanced Actor Critic methods like
-Proximal Policy Optimization (PPO) and Soft Actor Critic (SAC), also leveraging on the use of well-known
+This article is the third in a series of three reports for the Reinforcement Learning laboratory course at Politecnico di Torino. This report is about policy gradient reinforcement learning algorithms within the OpenAI Gym environment, focusing on the CartPole problem. This process started implementing the naïve REINFORCE algorithm and then exploring more advanced Actor Critic methods like Proximal Policy Optimization (PPO) and Soft Actor Critic (SAC), also leveraging on the use of well-known
 libraries such as Stable-Baselines3.
 
 \end{abstract}
@@ -81,7 +80,7 @@ libraries such as Stable-Baselines3.
 CartPole-v0 system from OpenAI is part of the classic control environment. The starting code it's been provided by \href{https://www.polito.it/personale?p=andrea.protopapa}{Andrea Protopapa} in the course of Reinforcement Learning. Information about this system is sourced from the official documentation \cite{Cart_pole} and its GitHub repository. Below is the definition provided by the authors for CartPole-v0\\ \\
 \textit{This environment corresponds to the version of the cart-pole problem described by Barto, Sutton, and Anderson in “Neuronlike Adaptive Elements That Can Solve Difficult Learning Control Problem”. A pole is attached by an un-actuated joint to a cart, which moves along a frictionless track. The pendulum is placed upright on the cart and the goal is to balance the pole by applying forces in the left and right direction on the cart.\citep{Cart_pole}}
 
-For the following procedures, use a modified version of the CartPole environment implemented in cp\_cont.py the standard CartPole uses discrete actions (applying force of either -10 or 10), while in this version it takes actions in the form of a single real number, which represents an arbitrary
+For the following procedures, it's been used a modified version of the CartPole environment implemented in cp\_cont.py the standard CartPole uses discrete actions (applying force of either -10 or 10), while in this version it takes actions in the form of a single real number, which represents an arbitrary
 force value.
 \begin{figure}[h]
 	\centering
@@ -111,64 +110,11 @@ where
 \section{Policy gradient}
 
 \subsection{REINFORCE algorithm}
-REINFORCE is a policy optimization algorithm that directly adjusts the parameters of a stochastic policy to maximize expected cumulative rewards and it operates through gradient ascent as optimization algorithm, iteratively searching for optimal parameters that maximize the objective function. [PROF]
+REINFORCE is a Policy-gradient method, a subclass of Policy-based methods that aims to optimize the policy directly by estimating the weights of the optimal policy using gradient ascent iteratively searching for optimal parameters that maximize the objective function. [PROF]
 
-The REINFORCE algorithm can be applied to a wide range of problems, including control tasks, game playing, and robotics. However, it has some limitations, such as high variance in the gradient estimates and slow convergence. To address these issues, various extensions and improvements have been proposed, such as using baseline functions to reduce variance, incorporating advantage estimates, and employing trust region methods.[https://advancedoracademy.medium.com/an-introduction-to-the-reinforce-5470a376b3ab]
+The REINFORCE algorithm can be applied to a wide range of problems, including control tasks like robotics. However, it has some limitations, such as high variance in the gradient estimates and slow convergence. To address these issues, various extensions and improvements have been proposed, such as using baseline functions to reduce variance, incorporating advantage estimates, and employing trust region methods. 
+[https://advancedoracademy.medium.com/an-introduction-to-the-reinforce-5470a376b3ab]
 
-
-\section{Actor Critic}
-
-\subsection{Proximal Policy Optimization (POC)}
-
-\subsection{Soft Actor Critic (SAC)}
-
-
-\subsection{Stable-Baselines3}
-Stable-Baselines 3 is a state-of-the-art RL library oﬀering eﬃcient and stable implementations of various
-algorithms. Specifically, it provides robust implementations for PPO and SAC, making it an ideal choice for
-experimentation due to its ease of use and reliability. [PROF]
-
-provides open-source implementations of deep reinforcement learning
-(RL) algorithms in Python. 
-
-\section{Policy gradient with and without baseline}
-
-Use constant variance for the output action distribution throughout the training.
-Implement the following algorithms:
-(a) basic REINFORCE without baseline,
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_basic.png}
-	\caption{Reward history - Basic REINFORCE no baseline}
-	\label{fig:plot3}
-\end{figure}
-
-
-(b) REINFORCE with a constant baseline ,
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_constant_baseline.png}
-	\caption{Reward history - Basic REINFORCE with b = 20}
-	\label{fig:plot4}
-\end{figure}
-(c) REINFORCE with discounted rewards normalized to zero mean and unit variance,
-
-A normalized baseline falls under the category of state-independent baselines but with an added transformation for stability. It normalizes the rewards (or returns) by centering them around their mean and scaling them by their standard deviation:
-
-$\text{Normalized Rewards} = \frac{R - \text{mean}(R)}{\text{std}(R) + \epsilon}$
-
-where  $\epsilon$  is a small constant to avoid division by zero.
-
-This type of baseline doesn’t directly depend on the state, but it helps stabilize training by reducing the range and variance of the rewards, which is especially useful when raw rewards vary significantly.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_normalized.png}
-	\caption{Reward history - Basic REINFORCE with discounted rewards normalized to zero mean and unit variance,}
-	\label{fig:plot5}
-\end{figure}
 
 \subsection{Baseline value}
 \subsection{What is?}
@@ -186,10 +132,7 @@ $\mathbb{E}[\nabla \log \pi(a|s; \theta) \cdot b] = 0$
 
 This is because the expectation of the gradient with respect to the policy’s probability distribution over actions sums to zero.\\
 
-Types of Baselines
-1.	Constant Baseline:
-•	A fixed scalar value (e.g., 0 or the average reward across episodes).
-•	Simple to implement but may not capture the variability of rewards in different states.
+In this paper it will be analyzed three different methods, the first one without a baseline. The second with a costant baseline setted to 20, Simple to implement but may not capture the variability of rewards in different states. <<<<<
 
 State-Dependent Baseline:
 •	A baseline that depends on the state, such as the value function  V(s) , which estimates the expected return from a state:
@@ -222,6 +165,65 @@ Variance Reduction:
 •	If the baseline is poorly chosen (e.g., far from the expected reward), it may not reduce variance effectively and could slow down training.
 
 
+\section{Actor Critic}
+In Reinforce, we want to increase the probability of actions in a trajectory proportionally to how high the return is.
+Given the stochasticity of the environment (random events during an episode) and stochasticity of the policy, trajectories can lead to different returns, which can lead to high variance. Consequently, the same starting state can lead to very different returns. Because of this, the return starting at the same state can vary significantly across episodes.
+
+The Actor-Critic method is a combination of Policy-Based and Value-Based methods: .\\
+there are two function approximations (two neural networks):
+Actor, a policy function parameterized 
+Critic, a value function parameterized
+At each timestep, t, we get the current state from the environment and pass it as input through our Actor and Critic.
+
+
+We can stabilize learning further by using the Advantage function as Critic instead of the Action value function.
+
+The idea is that the Advantage function calculates the relative advantage of an action compared to the others possible at a state: 
+
+this function calculates the extra reward we get if we take this action at that state compared to the mean reward we get at that state.
+
+The extra reward is what’s beyond the expected value of that state.
+
+If A(s,a) > 0: our gradient is pushed in that direction.
+If A(s,a) < 0 (our action does worse than the average value of that state), our gradient is pushed in the opposite direction.
+
+
+\section{Continuous Environment}
+Algorithms designed for continuous action spaces, like PPO and SAC, must handle a continuous range of values for each action dimension.
+
+PPO: Uses a stochastic policy, typically modeled by a Gaussian distribution, to output continuous actions. This allows PPO to handle the fine-grained control needed in continuous action environments effectively. 
+Provides a good balance between exploration and exploitation, making it suitable for environments with continuous state and action spaces. It usually converges faster and is more stable.
+
+
+SAC: Also employs a stochastic policy with a Gaussian distribution, but it enhances exploration through entropy regularization. The continuous action space allows SAC to leverage the entropy term to maintain diverse action selection, preventing premature convergence.
+Offers robust exploration through entropy regularization, often leading to better performance in environments with continuous action spaces. However, it may require more computational resources and longer training times.
+
+
+\subsection{Proximal Policy Optimization (POC)}
+PPO is an on-policy algorithm that balances simplicity and performance. PPO uses a stochastic policy, which means it outputs a probability distribution over actions rather than a single deterministic action. The policy is optimized using a surrogate objective function.
+Clipping Mechanism: To prevent large updates that could destabilize training, PPO introduces a clipping mechanism. The probability ratio between the new and old policies is clipped to ensure the policy does not change too drastically between updates.
+Advantages Estimation: PPO relies on advantage estimation, which is the difference between the expected return (value function) and the actual return. This helps the algorithm focus on actions that are better than average.
+Epochs and Batching: The algorithm updates the policy by iterating over multiple epochs and mini-batches, which ensures efficient and stable learning.
+
+
+we want to avoid having too large of a policy update.
+
+For two reasons:
+
+We know empirically that smaller policy updates during training are more likely to converge to an optimal solution.
+A too-big step in a policy update can result in falling “off the cliff” (getting a bad policy) and taking a long time or even having no possibility to recover.
+
+So with PPO, we update the policy conservatively. To do so, we need to measure how much the current policy changed compared to the former one using a ratio calculation between the current and former policy. And we clip this ratio in a range
+$[ 1 -  \theta, 1 + \theta], [1-\theta,1+\theta]$, meaning that we remove the incentive for the current policy to go too far from the old one (hence the proximal policy term).
+
+\subsection{Soft Actor Critic (SAC)}
+SAC is an off-policy algorithm designed for continuous action spaces. Here's how SAC learns:
+
+Actor-Critic Framework: SAC employs an actor (policy) and two critics (value functions). The actor selects actions, while the critics evaluate them.
+Entropy Regularization: SAC maximizes both the expected return and the entropy of the policy. Entropy regularization encourages exploration by adding a term to the objective function that measures the randomness of the policy. This helps prevent premature convergence to suboptimal policies.
+Off-Policy Learning: SAC leverages a replay buffer to store and reuse past experiences, which improves sample efficiency. The critics are updated using batches of experiences drawn from the replay buffer.
+Soft Q-Learning: SAC uses a soft version of the Bellman equation to update the critics. This involves minimizing the difference between the predicted Q-values and the target Q-values, which include the entropy term.
+
 \subsection{Real-world control problems}
 
 \subsection{Risks with Unbounded Continuous Action Spaces and Reward Function}
@@ -250,7 +252,84 @@ Potential Issues with Discrete Action Spaces
 3.	Exploration:
 •	Ensuring sufficient exploration is more challenging in discrete spaces but can be addressed with techniques like entropy regularization.
 
-\section{Actor-Critic Methods}
+
+
+\section{Experiments}
+In this section you'll see different tests applying different methods to solve the same problem, stabilize the pole. 
+
+\subsection{REINFORCE without baseline}
+The first method is to use REINFORCE wihout a baseline, and as you can see from the graph is not suitable to solve this task, in fact, the agent does not demonstrate clear convergence to an optimal policy.
+The reward curve is noisy, indicating high variability in the rewards as explained earlier while The 100-episode average curve shows that learning progresses very slowly, with periods of improvement followed by plateaus (e.g., between episodes 300-700) that indicate that the agent struggles to make consistent progress  or declines.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_basic.png}
+	\caption{Reward history - Basic REINFORCE no baseline}
+	\label{fig:plot3}
+\end{figure}
+
+\subsection{REINFORCE with a constant baseline $b = 20$}
+Compared to the graph without a baseline, the reward curve (Graph \ref{fig:plot4}) is less noisy, indicating more stable learning. This is because the constant baseline reduces the variance of the policy gradient updates. The agent achieves higher cumulative rewards more quickly with a baseline than without. The orange curve indicates steady progress even if sometimes it still has some little plateus (e.g. near the 300 episodes and near 700 episodes), whereas the no-baseline case showed significant instability and slower improvement.
+
+Average test reward: 158.4 episode length: 158.4
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_constant_baseline.png}
+	\caption{Reward history - Basic REINFORCE with b = 20}
+	\label{fig:plot4}
+\end{figure}
+
+
+\subsection{REINFORCE with discounted rewards normalized to zero mean and unit variance}
+A normalized baseline falls under the category of state-independent baselines but with an added transformation for stability. It normalizes the rewards (or returns) by centering them around their mean and scaling them by their standard deviation:
+
+$\text{Normalized Rewards} = \frac{R - \text{mean}(R)}{\text{std}(R) + \epsilon}$
+
+where  $\epsilon$  is a small constant to avoid division by zero.
+
+
+Average test reward: 193.6 episode length: 193.6
+Average test reward: 134.6 episode length: 134.6
+Average test reward: 186.0 episode length: 186.0
+
+This type of baseline doesn’t directly depend on the state, but it helps stabilize training by reducing the range and variance of the rewards, which is especially useful when raw rewards vary significantly.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{../data/plot/reward_history_ContinuousCartPole-v0_0_normalized.png}
+	\caption{Reward history - Basic REINFORCE with discounted rewards normalized to zero mean and unit variance,}
+	\label{fig:plot5}
+\end{figure}
+
+
+\subsection{Actor-Critic Methods}
+Now it's been tested the two actor critics methods presented before, the PPO (Figure ) \ref{fig:plot6}) and SAC (Figure \ref{fig:plot7}).
+
+
+Comparing them over the same number of epochs Both graphs shows a improvement over the number of epochs bu the final result is not the same. In fact, you see that the poc achieved a lower final reward value and the path is not linear as the sac method, it has its own spikes and decreases. On the other hand the sac after the first 5000 epochs where the rewards has found difficulties to increase it started to increase linearly achiveving a high final reward.
+These observations found a practical view when testing the model obtained seeing that the second is obviously much better than the second one.
+
+Speaking of time comsumption
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{../data/plot/ppo_ContinuousCartPole-v0.png}
+	\caption{Reward history - PPO}
+	\label{fig:plot6}
+\end{figure}
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{../data/plot/sac_ContinuousCartPole-v0.png}
+	\caption{Reward history - SAC}
+	\label{fig:plot7}
+\end{figure}
+
+\newpage
+
+\subsection{Comparing all methods}
+
 
 \subsection{Results}
 Compare Terms of reward and time consumption.
