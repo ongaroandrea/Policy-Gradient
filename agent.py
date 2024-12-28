@@ -29,9 +29,9 @@ class Policy(torch.nn.Module):
         x = self.fc1(x)
         x = F.relu(x)
         action_mean = self.fc2_mean(x)
-
         # --- Instantiate and return a normal distribution with mean as network output
         # T1 TODO
+        # Why normal distribution? Because we want to sample actions from a continuous action space
         # We use the square root of the variance because the normal distribution takes the standard deviation as input
         return Normal(action_mean, torch.sqrt(torch.tensor(self.sigmasquared))) 
 
@@ -46,7 +46,7 @@ class Agent(object):
             baseline_value: Constant baseline value (used only if algorithm='constant_baseline')
         """
                 
-        self.train_device = "cpu"
+        self.train_device = "cuda" if torch.cuda.is_available() else "cpu"
         self.policy = policy.to(self.train_device)
         self.optimizer = torch.optim.Adam(policy.parameters(), lr=5e-3)
         self.gamma = 0.98
@@ -66,8 +66,7 @@ class Agent(object):
         """
         (b) REINFORCE with constant baseline
         """
-        advantage = discounted_rewards - self.baseline_value
-        return -action_probs * advantage
+        return -action_probs * (discounted_rewards - self.baseline_value)
 
     def normalized_reinforce(self, action_probs, discounted_rewards):
         """

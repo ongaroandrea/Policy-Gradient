@@ -8,7 +8,7 @@ from cp_cont import CartPoleEnv
 import pandas as pd
 
 import sys
-
+import time
 import os
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -18,8 +18,9 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 def train(
     env_name,
     print_things=True,
+    save_plots=True,
     train_run_id=0,
-    train_episodes=1000,
+    train_episodes=10000,
     algorithm="constant_baseline",
 ):
     # Create a Gym environment
@@ -43,6 +44,8 @@ def train(
     average_reward_history = []
 
     # Run actual training
+    start = time.time()
+
     for episode_number in range(train_episodes):
         reward_sum, timesteps = 0, 0
         done = False
@@ -69,7 +72,7 @@ def train(
             reward_sum += reward
             timesteps += 1
 
-        if print_things:
+        if False:
             print(
                 "Episode {} finished. Total reward: {:.3g} ({} timesteps)".format(
                     episode_number, reward_sum, timesteps
@@ -90,20 +93,31 @@ def train(
         # Let the agent do its magic (update the policy)
         agent.episode_finished(episode_number)
 
+    end = time.time()
+    print(f"Training time: {end - start} s")
+
     # Training is finished - plot rewards
+
+    # Calculate the 100-episode average
+    average_reward_history = [  
+        np.mean(reward_history[max(0, i - 100) : i + 1]) for i in range(len(reward_history))
+    ]
+    print("Average reward: ", average_reward_history[-1]) 
+
     if print_things:
         plt.plot(reward_history)
         plt.plot(average_reward_history)
         plt.legend(["Reward", "100-episode average"])
 
-        plt.xlabel("episode", labelpad=12, fontweight="bold")
-        plt.ylabel("cumulative reward", labelpad=12, fontweight="bold")
-        plt.title("Reward history")
+        plt.xlabel("episode", labelpad=12, fontweight="bold", fontsize=14)
+        plt.ylabel("cumulative reward", labelpad=12, fontweight="bold", fontsize=14)
+        plt.title("Reward history", fontsize=14)
+        #plt.show()
+
+    if save_plots:
         plt.savefig(
-            "./data/plot/reward_history_%s_%d_%s.png"
-            % (env_name, train_run_id, algorithm)
-        )
-        plt.show()
+        "./data/plot/reward_history_%s_%d_%s_%d.png" % (env_name, train_run_id, algorithm, train_episodes)
+    )
         print("Training finished.")
 
     data = pd.DataFrame(
@@ -117,7 +131,7 @@ def train(
     )
     torch.save(
         agent.policy.state_dict(),
-        "./data/model/model_%s_%d_%s.mdl" % (env_name, train_run_id, algorithm),
+        "./data/model/model_%s_%d_%s_%d.mdl" % (env_name, train_run_id, algorithm, train_episodes),
     )
     return data
 
@@ -173,11 +187,13 @@ if __name__ == "__main__":
         default=1000,
         help="Number of episodes to train for",
     )
-    parser.add_argument("--render_test", action="store_true", help="Render test", default=False)
+    parser.add_argument(
+        "--render_test", action="store_true", help="Render test", default=False
+    )
     parser.add_argument(
         "--algorithm",
         type=str,
-        default="constant_baseline",
+        default="basic",
         help="Algorithm to use for training (basic, constant_baseline, normalized)",
     )
     parser.add_argument(
@@ -190,11 +206,19 @@ if __name__ == "__main__":
     # Otherwise load the policy from the file and go directly to testing.
     if args.test is None:
         try:
-            train(args.env, train_episodes=args.train_episodes, algorithm=args.algorithm)
+            train(
+                args.env, train_episodes=args.train_episodes, algorithm=args.algorithm
+            )
         # Handle Ctrl+C - save model and go to tests
         except KeyboardInterrupt:
             print("Interrupted!")
     else:
         state_dict = torch.load(args.test)
         print("Testing...")
-        test(args.env, args.test_episodes, state_dict, args.render_test, algorithm=args.algorithm)
+        test(
+            args.env,
+            args.test_episodes,
+            state_dict,
+            args.render_test,
+            algorithm=args.algorithm,
+        )

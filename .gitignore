@@ -10,3 +10,12 @@ prerequisities/
 .DS_Store
 
 data_saved/
+
+#files
+*.pdf
+
+__pycache__/
+
+data/log/ppo*
+
+data/dataframe/
